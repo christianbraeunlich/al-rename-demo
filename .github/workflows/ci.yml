@@ -119,8 +119,7 @@ jobs:
           }
           $JUnitDoc.Save($ResultFileName)
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: "**/TestResults.xml"
-          report_individual_runs: true
