@@ -17,3 +17,9 @@ If you are targeting versions of Business Central prior to 2021 release wave 2, 
 If you are targeting only Business Central 2021 release wave 2 or later, the publisher of an app can be changed at any point also after it is published. If the publisher is changed, the version must be incremented as well.
 
 If you are targeting versions of Business Central prior to 2021 release wave 2, then the publisher of an app cannot be changed after it has been published.
+
+## License
+
+Copyright (c) Christian Bräunlich. All rights reserved.
+
+Licensed under the [MIT](LICENSE) license.
