@@ -12,7 +12,7 @@ defaults:
     shell: PowerShell
 
 jobs:
-  build:
+  build-and-test:
     runs-on: [ windows-latest ]
     env:
       BC_CONTAINER_NAME: bcdev
@@ -119,7 +119,28 @@ jobs:
           }
           $JUnitDoc.Save($ResultFileName)
 
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: |
+            **/TestResults.xml
+
+  publish-test-results:
+    name: "Publish Unit Tests Results"
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    if: always()
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
-          files: "**/TestResults.xml"
+          files: "artifacts/**/TestResults.xml"
