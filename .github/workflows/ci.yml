@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+    branches: [ main, release/*, feature/* ]
+
+defaults:
+  run:
+    shell: PowerShell
+
+jobs:
+  build:
+    runs-on: [ windows-latest ]
+    env:
+      BC_CONTAINER_NAME: bcdev
+      BC_CONTAINER_USERNAME: admin
+      BC_CONTAINER_PASSWORD: P@ssword1
+      COMPILE_AND_PUBLISH: |
+        {
+          Compile-AppInBCContainer `
+            -containerName $Env:BC_CONTAINER_NAME `
+            -credential ([PSCredential]::new($Env:BC_CONTAINER_USERNAME, (ConvertTo-SecureString -String $Env:BC_CONTAINER_PASSWORD -AsPlainText -Force))) `
+            -appProjectFolder $_ `
+            -appOutputFolder $_ `
+            -EnableCodeCop `
+            -EnableUICop `
+            -EnablePerTenantExtensionCop `
+            -FailOn error
+          Publish-BcContainerApp `
+            -containerName $Env:BC_CONTAINER_NAME `
+            -credential ([PSCredential]::new($Env:BC_CONTAINER_USERNAME, (ConvertTo-SecureString -String $Env:BC_CONTAINER_PASSWORD -AsPlainText -Force))) `
+            -appFile (gci $_ -Filter "*.app").FullName `
+            -skipVerification `
+            -install `
+            -sync
+        }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install BcContainerHelper
+        shell: powershell
+        run: Install-Module BcContainerHelper -Force
+
+      - name: Set up Business Central container
+        shell: powershell
+        run: |
+          New-BCContainer `
+            -accept_eula `
+            -containerName $Env:BC_CONTAINER_NAME `
+            -artifactUrl (Get-BcArtifactUrl -type sandbox -version 20.0 -country us -select latest) `
+            -alwaysPull `
+            -auth NavUserPassword `
+            -credential ([PSCredential]::new($Env:BC_CONTAINER_USERNAME, (ConvertTo-SecureString -String $Env:BC_CONTAINER_PASSWORD -AsPlainText -Force))) `
+            -updateHosts `
+            -enableTaskScheduler:$false `
+            -includeTestFrameworkOnly `
+            -includeTestLibrariesOnly `
+            -includePerformanceToolkit `
+            -additionalParameters @("--volume $Env:GITHUB_WORKSPACE\`:c:\project") `
+            -includeAL
+
+      - name: Build Base App Extension
+        shell: powershell
+        run: Invoke-Expression "'$Env:GITHUB_WORKSPACE\base\app' | % $Env:COMPILE_AND_PUBLISH"
+
+      - name: Build Base Test Extension
+        shell: powershell
+        run: Invoke-Expression "'$Env:GITHUB_WORKSPACE\base\test' | % $Env:COMPILE_AND_PUBLISH"
+
+      - name: Run Base Tests
+        shell: powershell
+        run: |
+          $TestsAppID = "a558a0d4-9655-452a-8206-9a78a499ec6a"
+          $ResultFileName = "$Env:GITHUB_WORKSPACE\base\test\TestResults.xml"
+          Run-TestsInBCContainer `
+            -containerName $Env:BC_CONTAINER_NAME `
+            -credential ([PSCredential]::new($Env:BC_CONTAINER_USERNAME, (ConvertTo-SecureString -String $Env:BC_CONTAINER_PASSWORD -AsPlainText -Force))) `
+            -extensionID $TestsAppID `
+            -JUnitResultFileName $ResultFileName `
+            -detailed
+          [xml]$JUnitDoc = Get-Content $ResultFileName
+          $TestCaseResults = $JUnitDoc.testsuites.ChildNodes | % { $_.testcase.ChildNodes }
+          $TestFailures = $TestCaseResults | ? { $_.Name -eq "failure" }
+          $TestFailures | % {
+            $IndentedCallStack = ($_.InnerText).Replace("`n","`n  ")
+            $_.InnerText = "Error:`n  $($_.message)`nCall Stack:`n  $IndentedCallStack"
+          }
+          $JUnitDoc.Save($ResultFileName)
+
+      - name: Build Leaf App Extension
+        shell: powershell
+        run: Invoke-Expression "'$Env:GITHUB_WORKSPACE\leaf\app' | % $Env:COMPILE_AND_PUBLISH"
+
+      - name: Build Leaf Test Extension
+        shell: powershell
+        run: Invoke-Expression "'$Env:GITHUB_WORKSPACE\leaf\test' | % $Env:COMPILE_AND_PUBLISH"
+
+      - name: Run Leaf Tests
+        shell: powershell
+        run: |
+          $TestsAppID = "4a7253f9-56fc-40f8-8b62-0aa31f3cd670"
+          $ResultFileName = "$Env:GITHUB_WORKSPACE\base\test\TestResults.xml"
+          Run-TestsInBCContainer `
+            -containerName $Env:BC_CONTAINER_NAME `
+            -credential ([PSCredential]::new($Env:BC_CONTAINER_USERNAME, (ConvertTo-SecureString -String $Env:BC_CONTAINER_PASSWORD -AsPlainText -Force))) `
+            -extensionID $TestsAppID `
+            -JUnitResultFileName $ResultFileName `
+            -detailed
+          [xml]$JUnitDoc = Get-Content $ResultFileName
+          $TestCaseResults = $JUnitDoc.testsuites.ChildNodes | % { $_.testcase.ChildNodes }
+          $TestFailures = $TestCaseResults | ? { $_.Name -eq "failure" }
+          $TestFailures | % {
+            $IndentedCallStack = ($_.InnerText).Replace("`n","`n  ")
+            $_.InnerText = "Error:`n  $($_.message)`nCall Stack:`n  $IndentedCallStack"
+          }
+          $JUnitDoc.Save($ResultFileName)
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        with:
+          files: "**/TestResults.xml"
+          report_individual_runs: true
