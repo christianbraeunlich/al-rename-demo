@@ -1,0 +1,7 @@
+*.app
+*.flf
+*.bclicense
+.alpackages
+.altestrunner
+.snapshots
+.vscode

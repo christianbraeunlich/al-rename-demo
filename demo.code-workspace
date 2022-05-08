@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "path": "base/app",
+            "name": "BASE APP"
+        },
+        {
+            "path": "base/test",
+            "name": "BASE TEST"
+        },
+        {
+            "path": "leaf/app",
+            "name": "LEAF APP"
+        },
+        {
+            "path": "leaf/test",
+            "name": "LEAF TEST"
+        }
+    ],
+    "settings": {}
+}

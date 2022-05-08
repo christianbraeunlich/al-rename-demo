@@ -1,0 +1,36 @@
+{
+    "id": "94bb2dec-568b-4407-838b-84a1db98df32",
+    "name": "Leaf",
+    "publisher": "christianbraeunlich",
+    "brief": "",
+    "description": "",
+    "version": "0.0.0.0",
+    "privacyStatement": "",
+    "EULA": "",
+    "help": "",
+    "url": "",
+    "logo": "logo/ExtensionLogo.png",
+    "dependencies": [
+      {
+        "id": "63a0b22a-2591-4d4a-b3cc-60a3109b8ecc",
+        "name": "Base",
+        "publisher": "christianbraeunlich",
+        "version": "0.0.0.0"
+      }
+    ],
+    "platform": "20.0.0.0",
+    "application": "20.0.37253.39558",
+    "idRanges": [
+      {
+        "from": 89000,
+        "to": 89089
+      }
+    ],
+    "target": "Cloud",
+    "runtime": "9.0",
+    "resourceExposurePolicy": {
+        "allowDebugging": true,
+        "allowDownloadingSource": true,
+        "includeSourceInSymbolFile": true
+    }
+}

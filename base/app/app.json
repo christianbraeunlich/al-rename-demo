@@ -1,0 +1,29 @@
+{
+    "id": "63a0b22a-2591-4d4a-b3cc-60a3109b8ecc",
+    "name": "Base",
+    "publisher": "christianbraeunlich",
+    "brief": "",
+    "description": "",
+    "version": "0.0.0.0",
+    "privacyStatement": "",
+    "EULA": "",
+    "help": "",
+    "url": "",
+    "logo": "logo/ExtensionLogo.png",
+    "dependencies": [],
+    "platform": "20.0.0.0",
+    "application": "20.0.37253.39558",
+    "idRanges": [
+      {
+        "from": 88000,
+        "to": 88089
+      }
+    ],
+    "target": "Cloud",
+    "runtime": "9.0",
+    "resourceExposurePolicy": {
+        "allowDebugging": true,
+        "allowDownloadingSource": true,
+        "includeSourceInSymbolFile": true
+    }
+}
