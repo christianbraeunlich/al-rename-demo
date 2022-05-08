@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - 'README.md'
+      - '**.code-workspace'
     branches: [ main, release/*, feature/* ]
 
 defaults:

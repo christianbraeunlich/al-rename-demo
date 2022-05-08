@@ -1,6 +1,10 @@
 {
     "folders": [
         {
+            "path": ".github",
+            "name": "GITHUB"
+        },
+        {
             "path": "base/app",
             "name": "BASE APP"
         },
